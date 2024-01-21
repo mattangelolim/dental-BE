@@ -23,7 +23,7 @@ const User = sequelize.define("User", {
         allowNull: false,
     },
     address: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
         allowNull: false,
     },
     password: {
@@ -32,6 +32,6 @@ const User = sequelize.define("User", {
     },
 });
 
-User.sync()
+// User.sync()
 
 module.exports = User;
