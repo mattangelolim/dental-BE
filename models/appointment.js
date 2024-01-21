@@ -13,7 +13,11 @@ const appointment = sequelize.define("appointment", {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    date:{
+    contact: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    date: {
         type: DataTypes.DATEONLY,
         allowNull: false,
     },
@@ -29,24 +33,30 @@ const appointment = sequelize.define("appointment", {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    additional_service:{
+    tooth_name: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
     },
     client_note: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
     },
-    status:{
-        type: DataTypes.STRING,
+    status: {
+        type: DataTypes.TINYINT,
         allowNull: false,
+        defaultValue: 0
     },
-    doctor_note:{
-        type: DataTypes.STRING,
+    approval: {
+        type: DataTypes.TINYINT,
         allowNull: false,
+        defaultValue: 0
+    },
+    doctor_note: {
+        type: DataTypes.STRING,
+        allowNull: true,
     }
 });
 
-appointment.sync()
+// appointment.sync()
 
 module.exports = appointment;

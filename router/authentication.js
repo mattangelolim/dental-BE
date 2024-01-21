@@ -4,7 +4,6 @@ const router = express.Router();
 const User = require("../models/user");
 const Admin = require("../models/admin")
 
-
 //REGISTRATION USER
 router.post("/user/register", async (req, res) => {
     try {
@@ -52,7 +51,7 @@ router.post("/user/login", async (req, res) => {
         const loginUserCreds = await User.findOne({
             where: {
                 email: email,
-                userpass: password,
+                password: password,
             },
         });
 
@@ -62,6 +61,8 @@ router.post("/user/login", async (req, res) => {
             });
         }
 
+        res.cookie('username', loginUserCreds.name, { maxAge: 86400000, httpOnly: true });
+        
         res.status(200).json({
             message: "login successfully",
             loginUserCreds,
