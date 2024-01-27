@@ -117,4 +117,71 @@ router.get("/fetch/appointment", async (req, res) => {
     }
 });
 
+
+router.post("/approve/appointment", async (req, res) => {
+    try {
+        const { id, approval } = req.query;
+
+        // Define the status based on the approval value
+        let status;
+        if (approval === 'Declined') {
+            status = 1; // Declined status code
+        } else if (approval === 'Approved') {
+            status = 2; // Approved status code
+        } else {
+            // If neither Declined nor Approved, return a bad request response
+            return res.status(400).json({ message: "Invalid approval status" });
+        }
+
+        // Update the status of the appointment in the database
+        await Appointment.update({ status }, { where: { id: id } });
+
+        res.status(200).json({ message: "Appointment approval status updated successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: error.message });
+    }
+});
+
+router.get("/fetch/pending/Appointments", async (req, res) => {
+    try {
+        const pendingAppointments = await Appointment.findAll({
+            where: {
+                status: 0
+            },
+            include: [
+                {
+                    model: AdditionalService,
+                    attributes: ['service_description']
+                }
+            ]
+        })
+
+        res.status(200).json({ pendingAppointments })
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: error.message });
+    }
+})
+
+router.get("/fetch/all/Appointments", async (req, res) => {
+    try {
+        const allAppointments = await Appointment.findAll({
+            include: [
+                {
+                    model: AdditionalService,
+                    attributes: ['service_description']
+                }
+            ]
+        })
+
+        res.status(200).json({ allAppointments })
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: error.message });
+    }
+})
+
 module.exports = router

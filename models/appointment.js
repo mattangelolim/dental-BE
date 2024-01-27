@@ -37,6 +37,10 @@ const appointment = sequelize.define("appointment", {
         type: DataTypes.STRING,
         allowNull: true,
     },
+    service_cost:{
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
     client_note: {
         type: DataTypes.STRING,
         allowNull: true,

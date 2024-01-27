@@ -14,7 +14,7 @@ const service = sequelize.define("service", {
         allowNull: false,
     },
     service_cost: {
-        type: DataTypes.STRING,
+        type: DataTypes.INTEGER,
         allowNull: false,
     },
     estimated_time: {

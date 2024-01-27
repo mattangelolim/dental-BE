@@ -5,6 +5,7 @@ const Appointment = require('./appointment');
 
 const AdditionalService = sequelize.define('AdditionalService', {
   service_description: DataTypes.STRING,
+  service_cost: DataTypes.INTEGER,
 });
 
 // Define the association
