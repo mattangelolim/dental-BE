@@ -9,7 +9,7 @@ const service = sequelize.define("service", {
         primaryKey: true,
         autoIncrement: true,
     },
-    service_name:{
+    service_name: {
         type: DataTypes.STRING,
         allowNull: false,
     },
@@ -17,6 +17,14 @@ const service = sequelize.define("service", {
         type: DataTypes.STRING,
         allowNull: false,
     },
+    estimated_time: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    description:{
+        type: DataTypes.TEXT,
+        allowNull: false,
+    }
 });
 
 // service.sync()

@@ -12,9 +12,11 @@ app.use(bodyParser.json());
 
 const authentication = require("./router/authentication")
 const appointment = require("./router/appointment")
+const Services = require("./router/servicesRoute")
+const AvailableTime = require("./router/dateValidator")
 
 
-app.use("/", authentication, appointment)
+app.use("/", authentication, appointment, Services, AvailableTime)
 
 app.listen(port, () => {
     console.log("Listening on port", port);

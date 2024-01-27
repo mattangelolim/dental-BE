@@ -2,25 +2,61 @@ const express = require("express");
 const router = express.Router();
 const Appointment = require("../models/appointment")
 const AdditionalService = require("../models/AdditionalService")
+const Services = require("../models/services")
 
 router.post("/book/appointment", async (req, res) => {
     try {
-        const name = req.cookies.username;
-        const { phone, date, start_time, end_time, service, tooth_name, additional_service, client_note } = req.body;
+        const { phone, date, start_time, service_name, tooth_name, additional_service, client_note } = req.body;
+
+        // Convert start_time to a Date object
+        const startTime = new Date(`${date}T${start_time}`);
+
+        // Fetch the main service details (including estimated time)
+        const mainService = await Services.findOne({ where: { service_name } });
+
+        // Calculate the total duration by summing up the estimated times
+        let totalDuration = mainService.estimated_time;
+
+        // Fetch additional services details and add their estimated times to total duration
+        if (Array.isArray(additional_service) && additional_service.length > 0) {
+            const additionalServices = await Services.findAll({ where: { service_name: additional_service } });
+            additionalServices.forEach(service => {
+                totalDuration += service.estimated_time;
+            });
+        }
+
+        // Calculate end time by adding total duration to start time
+        const endTime = new Date(startTime.getTime() + totalDuration * 60 * 60 * 1000); // Convert hours to milliseconds
+
+        // Format end time as "HH:MM:SS"
+        const formattedEndTime = `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}:${endTime.getSeconds().toString().padStart(2, '0')}`;
+
+        // Check if the calculated end_time conflicts with any existing appointments
+        const existingAppointments = await Appointment.findAll({
+            where: { date },
+            attributes: ['start_time']
+        });
+
+        for (const appointment of existingAppointments) {
+            const existingStartTime = new Date(`${date}T${appointment.start_time}`);
+            if (existingStartTime <= endTime) {
+                res.status(409).json({ message: "There's a conflict in schedule" });
+                return;
+            }
+        }
 
         // Create a new appointment
         const newAppointment = await Appointment.create({
-            name,
+            name: req.cookies.username,
             contact: phone,
             date,
             start_time,
-            end_time,
-            service,
+            end_time: formattedEndTime,
+            service: service_name,
             tooth_name,
             client_note
         });
 
-        // Create and associate additional services
         if (Array.isArray(additional_service) && additional_service.length > 0) {
             const createdServices = await AdditionalService.bulkCreate(
                 additional_service.map(service_description => ({
@@ -41,6 +77,8 @@ router.post("/book/appointment", async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+
+
 
 router.get("/fetch/appointment", async (req, res) => {
     try {
