@@ -54,18 +54,28 @@ router.post("/book/appointment", async (req, res) => {
             end_time: formattedEndTime,
             service: service_name,
             tooth_name,
+            service_cost: mainService.service_cost,
             client_note
         });
 
         if (Array.isArray(additional_service) && additional_service.length > 0) {
-            const createdServices = await AdditionalService.bulkCreate(
-                additional_service.map(service_description => ({
+            const createdServices = await Promise.all(additional_service.map(async service_description => {
+                const additional = await Services.findOne({ where: { service_name: service_description } });
+                if (!additional) {
+                    console.error(`Service details not found for '${service_description}'`);
+                    return null;
+                }
+                return AdditionalService.create({
                     service_description,
+                    service_cost: additional.service_cost,
                     appointmentId: newAppointment.id
-                }))
-            );
+                });
+            }));
 
-            newAppointment.setDataValue('additional_services', createdServices);
+            // Filter out any null values from createdServices array
+            const validServices = createdServices.filter(service => service !== null);
+
+            newAppointment.setDataValue('additional_services', validServices);
         }
 
         res.status(201).json({
@@ -91,21 +101,29 @@ router.get("/fetch/appointment", async (req, res) => {
             },
             include: {
                 model: AdditionalService,
-                attributes: ['service_description']
+                attributes: ['service_description', 'service_cost']
             }
         });
 
         // Format the fetched appointments
-        const formattedAppointments = userAppointments.map(appointment => ({
-            appointment_start: `${appointment.date} ${appointment.start_time}`,
-            appointment_end: `${appointment.date} ${appointment.end_time}`,
-            service: appointment.service,
-            additional_service: appointment.AdditionalServices.map(service => service.service_description),
-            my_note: appointment.client_note,
-            doctor_note: appointment.doctor_note,
-            approval: appointment.approval === 1 ? 'accepted' : (appointment.approval === 2 ? 'rejected' : 'pending'),
-            // status: appointment.approval === 0 ? 'N/A' : (appointment.approval === 1 ? 'upcoming' : 'done')
-        }));
+        const formattedAppointments = userAppointments.map(appointment => {
+            const additionalServices = appointment.AdditionalServices.map(service => ({
+                service_description: service.service_description,
+                service_cost: service.service_cost
+            }));
+
+            return {
+                appointment_start: `${appointment.date} ${appointment.start_time}`,
+                appointment_end: `${appointment.date} ${appointment.end_time}`,
+                service: appointment.service,
+                service_cost: appointment.service_cost,
+                additional_services: additionalServices,
+                my_note: appointment.client_note,
+                doctor_note: appointment.doctor_note,
+                approval: appointment.approval === 1 ? 'accepted' : (appointment.approval === 2 ? 'rejected' : 'pending'),
+                // status: appointment.approval === 0 ? 'N/A' : (appointment.approval === 1 ? 'upcoming' : 'done')
+            };
+        });
 
         res.status(200).json({
             message: "Appointments fetched successfully",
@@ -120,7 +138,8 @@ router.get("/fetch/appointment", async (req, res) => {
 
 router.post("/approve/appointment", async (req, res) => {
     try {
-        const { id, approval } = req.query;
+        const { id, approval, doctor_note} = req.query;
+        // const doctor_note = req.body.doctor_note
 
         // Define the status based on the approval value
         let status;
@@ -134,7 +153,7 @@ router.post("/approve/appointment", async (req, res) => {
         }
 
         // Update the status of the appointment in the database
-        await Appointment.update({ status }, { where: { id: id } });
+        await Appointment.update({ status, doctor_note }, { where: { id: id } });
 
         res.status(200).json({ message: "Appointment approval status updated successfully" });
     } catch (error) {
@@ -152,7 +171,7 @@ router.get("/fetch/pending/Appointments", async (req, res) => {
             include: [
                 {
                     model: AdditionalService,
-                    attributes: ['service_description']
+                    attributes: ['service_description', 'service_cost']
                 }
             ]
         })
@@ -171,7 +190,7 @@ router.get("/fetch/all/Appointments", async (req, res) => {
             include: [
                 {
                     model: AdditionalService,
-                    attributes: ['service_description']
+                    attributes: ['service_description', 'service_cost']
                 }
             ]
         })

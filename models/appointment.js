@@ -56,7 +56,7 @@ const appointment = sequelize.define("appointment", {
         defaultValue: 0
     },
     doctor_note: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: true,
     }
 });
