@@ -3,6 +3,8 @@ const router = express.Router();
 const Appointment = require("../models/appointment")
 const AdditionalService = require("../models/AdditionalService")
 const Services = require("../models/services")
+const moment = require('moment');
+const { Op } = require("sequelize")
 
 router.post("/book/appointment", async (req, res) => {
     try {
@@ -138,7 +140,7 @@ router.get("/fetch/appointment", async (req, res) => {
 
 router.post("/approve/appointment", async (req, res) => {
     try {
-        const { id, approval, doctor_note} = req.query;
+        const { id, approval, doctor_note } = req.query;
         // const doctor_note = req.body.doctor_note
 
         // Define the status based on the approval value
@@ -202,5 +204,183 @@ router.get("/fetch/all/Appointments", async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 })
+
+// APPOINTMENTS CREATED PER DAY
+
+router.get('/appointment/numbers', async (req, res) => {
+    try {
+        const startDate = req.query.startDate;
+        const endDate = req.query.endDate;
+
+        const today = new Date();
+        const currentDateString = today.toISOString().split("T")[0];
+
+        // Fetch appointments within the specified date range
+        const whereCondition = {
+            createdAt: {
+                [Op.between]: [startDate || currentDateString, endDate || currentDateString],
+            },
+        };
+        const appointments = await Appointment.findAll({ where: whereCondition });
+
+        // Count appointments per day
+        const countsPerDay = {};
+        appointments.forEach(appointment => {
+            const date = new Date(appointment.createdAt).toISOString().split("T")[0];
+            countsPerDay[date] = countsPerDay[date] ? countsPerDay[date] + 1 : 1;
+        });
+
+        // Convert countsPerDay object into an array of objects
+        const countsArray = Object.keys(countsPerDay).map(date => ({
+            date: formatDate(date),
+            count: countsPerDay[date]
+        }));
+
+        res.json(countsArray);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+//TOP SERVICES AVAILED
+
+router.get('/top/services', async (req, res) => {
+    try {
+        const startDate = req.query.startDate;
+        const endDate = req.query.endDate;
+        const today = new Date();
+        const currentDateString = today.toISOString().split("T")[0];
+
+        const whereCondition = {};
+        if (startDate || endDate) {
+            whereCondition.createdAt = {
+                [Op.between]: [startDate || currentDateString, endDate || currentDateString],
+            };
+        }
+
+        // Fetch appointments within the specified date range
+        const appointments = await Appointment.findAll({ where: whereCondition });
+
+        // Count occurrences of each service
+        const additionalServices = await AdditionalService.findAll({ where: whereCondition });
+
+        // Count occurrences of each service from appointments
+        const serviceCounts = {};
+        appointments.forEach(appointment => {
+            const service = appointment.service;
+            serviceCounts[service] = (serviceCounts[service] || 0) + 1;
+        });
+
+        // Count occurrences of each additional service
+        additionalServices.forEach(additionalService => {
+            const service = additionalService.service_description;
+            serviceCounts[service] = (serviceCounts[service] || 0) + 1;
+        });
+
+        // Convert serviceCounts object into an array of objects
+        const topServices = Object.keys(serviceCounts).map(service => ({
+            service: service,
+            count: serviceCounts[service]
+        }));
+
+        // Sort the array by count in descending order
+        topServices.sort((a, b) => b.count - a.count);
+
+        res.json(topServices);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+//
+router.get("/approved/appointment/num", async (req, res) => {
+    try {
+        const startDate = req.query.startDate;
+        const endDate = req.query.endDate;
+
+        const today = new Date();
+        const currentDateString = today.toISOString().split("T")[0];
+
+        // Fetch appointments within the specified date range
+        const whereCondition = {
+            createdAt: {
+                [Op.between]: [startDate || currentDateString, endDate || currentDateString],
+            },
+            status: 2
+        };
+        const appointments = await Appointment.findAll({ where: whereCondition });
+        const count = appointments.length;
+
+        res.json({ count });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+})
+
+router.get("/pending/appointment/num", async (req, res) => {
+    try {
+        const startDate = req.query.startDate;
+        const endDate = req.query.endDate;
+
+        const today = new Date();
+        const currentDateString = today.toISOString().split("T")[0];
+
+        // Fetch appointments within the specified date range
+        const whereCondition = {
+            createdAt: {
+                [Op.between]: [startDate || currentDateString, endDate || currentDateString],
+            },
+            status: 0
+        };
+        const appointments = await Appointment.findAll({ where: whereCondition });
+        const count = appointments.length;
+
+        res.json({ count });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+})
+
+router.get("/appointment/today", async (req, res) => {
+    try {
+        // Get today's date in the desired format
+        const today = moment().format('YYYY-MM-DD');
+        const endDate = moment(today).endOf('day');
+        console.log(endDate)
+
+        // Fetch appointments for today
+        const appointments = await Appointment.findAll({
+            where: {
+                date: endDate.toDate(),
+                status: 2
+            }
+        });
+
+        // Count the number of appointments for today
+        const count = appointments.length;
+
+        res.json({ count });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
+// Function to format date to human-readable format
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const options = { month: 'long', day: 'numeric' };
+    return date.toLocaleDateString('en-US', options);
+}
 
 module.exports = router

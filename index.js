@@ -15,9 +15,10 @@ const appointment = require("./router/appointment")
 const Services = require("./router/servicesRoute")
 const AvailableTime = require("./router/dateValidator")
 const UserProfile =  require("./router/userProfile")
+const dashboard = require("./router/dasbhoard")
 
 
-app.use("/", authentication, appointment, Services, AvailableTime, UserProfile)
+app.use("/", authentication, appointment, Services, AvailableTime, UserProfile, dashboard)
 
 app.listen(port, () => {
     console.log("Listening on port", port);
