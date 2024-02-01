@@ -8,7 +8,7 @@ const { Op } = require("sequelize")
 
 router.post("/book/appointment", async (req, res) => {
     try {
-        const { phone, date, start_time, service_name, tooth_name, additional_service, client_note } = req.body;
+        const { phone, date, start_time, service_name, additional_service, client_note } = req.body;
 
         // Convert start_time to a Date object
         const startTime = new Date(`${date}T${start_time}`);
@@ -55,7 +55,6 @@ router.post("/book/appointment", async (req, res) => {
             start_time,
             end_time: formattedEndTime,
             service: service_name,
-            tooth_name,
             service_cost: mainService.service_cost,
             client_note
         });
