@@ -16,6 +16,7 @@ const Services = require("./router/servicesRoute");
 const AvailableTime = require("./router/dateValidator");
 const UserProfile = require("./router/userProfile");
 const dashboard = require("./router/dasbhoard");
+const users = require("./router/users");
 
 app.use(
   "/",
@@ -24,7 +25,8 @@ app.use(
   Services,
   AvailableTime,
   UserProfile,
-  dashboard
+  dashboard,
+  users
 );
 
 app.listen(port, () => {
