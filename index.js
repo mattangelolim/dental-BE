@@ -6,8 +6,12 @@ const cookieParser = require("cookie-parser");
 const app = express();
 const port = 9000;
 const fs = require("fs")
-const file = fs.readFileSync('./A1E35907E17CD7A8FEAC34292F26B235.txt')
+// const file = fs.readFileSync('./A1E35907E17CD7A8FEAC34292F26B235.txt')
 const https = require("https")
+
+const key = fs.readFileSync('private.key')
+const cert = fs.readFileSync('certificate.crt')
+
 
 app.use(cors());
 app.use(cookieParser());
@@ -32,9 +36,14 @@ app.use(
   dashboard,
   users
 );
-app.get('/.well-known/pki-validation/A1E35907E17CD7A8FEAC34292F26B235.txt', (req,res) =>{
-  res.sendFile("./home/ubuntu/dental-BE/A1E35907E17CD7A8FEAC34292F26B235.txt")
-})
+
+
+const cred = {
+  key,
+  cert
+}
+const httpsServer = https.createServer(cred, app)
+httpsServer.listen(9001)
 
 app.listen(port, () => {
   console.log("Listening on port", port);
