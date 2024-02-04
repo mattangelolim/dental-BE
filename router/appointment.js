@@ -116,23 +116,20 @@ router.post("/book/appointment", async (req, res) => {
 });
 
 router.post("/update/toothname", async (req, res) => {
-    try {
-        const { tooth_index } = req.body
-        const uid = req.query.uid
+  try {
+    const { tooth_index } = req.body;
+    const uid = req.query.uid;
 
-        const findRow = await Appointment.findByPk(uid)
+    const findRow = await Appointment.findByPk(uid);
 
-        await findRow.update({ tooth_name: tooth_index });
+    await findRow.update({ tooth_name: tooth_index });
 
-        res.status(200).json({ message: "Tooth name updated successfully" });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: error.message });
-    }
-})
-
-
+    res.status(200).json({ message: "Tooth name updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+});
 
 router.get("/fetch/appointment", async (req, res) => {
   try {
@@ -166,6 +163,7 @@ router.get("/fetch/appointment", async (req, res) => {
         additional_services: additionalServices,
         my_note: appointment.client_note,
         doctor_note: appointment.doctor_note,
+        tooth_name: appointment.tooth_name,
         approval:
           appointment.approval === 1
             ? "accepted"
