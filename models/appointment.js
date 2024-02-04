@@ -34,7 +34,7 @@ const appointment = sequelize.define("appointment", {
         allowNull: false,
     },
     tooth_name: {
-        type: DataTypes.STRING,
+        type: DataTypes.ARRAY(DataTypes.STRING),
         allowNull: true,
     },
     service_cost:{
