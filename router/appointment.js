@@ -164,10 +164,16 @@ router.get("/fetch/appointment", async (req, res) => {
         my_note: appointment.client_note,
         doctor_note: appointment.doctor_note,
         tooth_name: appointment.tooth_name,
+        // approval:
+        //   appointment.approval === 1
+        //     ? "accepted"
+        //     : appointment.approval === 2
+        //     ? "rejected"
+        //     : "pending",
         approval:
-          appointment.approval === 1
+          appointment.status === 2
             ? "accepted"
-            : appointment.approval === 2
+            : appointment.status === 1
             ? "rejected"
             : "pending",
         // status: appointment.approval === 0 ? 'N/A' : (appointment.approval === 1 ? 'upcoming' : 'done')
