@@ -59,10 +59,10 @@ router.post("/book/appointment", async (req, res) => {
 
     for (const appointment of existingAppointments) {
       const existingStartTime = new Date(`${date}T${appointment.start_time}`);
-      if (existingStartTime <= endTime) {
-        res.status(409).json({ message: "There's a conflict in schedule" });
-        return;
-      }
+      // if (existingStartTime <= endTime) {
+      //   res.status(409).json({ message: "There's a conflict in schedule" });
+      //   return;
+      // }
     }
 
     // Create a new appointment
