@@ -151,6 +151,20 @@ router.get("/revenue/analytics", async (req, res) => {
                 });
                 revenueData.push({ month: startOfMonth.toLocaleString('en-us', { month: 'long' }), revenue: monthlyRevenue || 0 });
             }
+        }
+        else if (filter === 'yearly') {
+            const startOfYear = new Date(currentDate.getFullYear(), 0, 1); // Start of the current year
+            const endOfYear = new Date(currentDate.getFullYear(), 11, 31); // End of the current year
+
+            const yearlyRevenue = await Payment.sum('amount', {
+                where: {
+                    createdAt: {
+                        [Op.between]: [startOfYear, endOfYear]
+                    }
+                }
+            });
+            revenueData.push({ year: currentDate.getFullYear(), revenue: yearlyRevenue || 0 });
+        
         } else {
             return res.status(400).json({ message: 'Invalid filter' });
         }
