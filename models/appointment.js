@@ -37,7 +37,7 @@ const appointment = sequelize.define("appointment", {
         type: DataTypes.ARRAY(DataTypes.STRING),
         allowNull: true,
     },
-    service_cost:{
+    service_cost: {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
@@ -56,6 +56,10 @@ const appointment = sequelize.define("appointment", {
         defaultValue: 0
     },
     doctor_note: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    doctors_diagnostic: {
         type: DataTypes.TEXT,
         allowNull: true,
     }

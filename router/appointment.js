@@ -3,6 +3,7 @@ const router = express.Router();
 const Appointment = require("../models/appointment");
 const AdditionalService = require("../models/AdditionalService");
 const Services = require("../models/services");
+const Payment = require("../models/payment")
 const moment = require("moment");
 const { Op } = require("sequelize");
 
@@ -59,10 +60,6 @@ router.post("/book/appointment", async (req, res) => {
 
     for (const appointment of existingAppointments) {
       const existingStartTime = new Date(`${date}T${appointment.start_time}`);
-      // if (existingStartTime <= endTime) {
-      //   res.status(409).json({ message: "There's a conflict in schedule" });
-      //   return;
-      // }
     }
 
     // Create a new appointment
@@ -103,6 +100,14 @@ router.post("/book/appointment", async (req, res) => {
       );
 
       newAppointment.setDataValue("additional_services", validServices);
+
+      const totalCost = mainService.service_cost + validServices.reduce((total, service) => total + service.service_cost, 0);
+
+      await Payment.create({
+        appointment_uid: newAppointment.id,
+        name,
+        amount: totalCost
+      })
     }
 
     res.status(201).json({
@@ -162,7 +167,7 @@ router.get("/fetch/appointment", async (req, res) => {
         service_cost: appointment.service_cost,
         additional_services: additionalServices,
         my_note: appointment.client_note,
-        doctor_note: appointment.doctor_note,
+        doctor_note: appointment.doctor_note, 
         tooth_name: appointment.tooth_name,
         // approval:
         //   appointment.approval === 1
@@ -213,6 +218,33 @@ router.post("/approve/appointment", async (req, res) => {
       .status(200)
       .json({ message: "Appointment approval status updated successfully" });
   } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.post("/appointment/diagnostic", async (req, res) => {
+  try {
+    const { id, doctors_diagnose } = req.body;
+
+    // Find the appointment by its primary key
+    const appointmentDiagnostic = await Appointment.findByPk(id);
+
+    // Check if the appointment exists
+    if (!appointmentDiagnostic) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+
+    // Update the doctors_diagnostic column
+    appointmentDiagnostic.doctors_diagnostic = doctors_diagnose;
+
+    // Save the changes
+    await appointmentDiagnostic.save();
+
+    // Send success response
+    res.status(200).json({ message: "Diagnostic set successfully" });
+  } catch (error) {
+    // Handle errors
     console.error(error);
     res.status(500).json({ message: error.message });
   }

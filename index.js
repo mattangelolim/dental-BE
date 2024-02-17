@@ -25,6 +25,7 @@ const AvailableTime = require("./router/dateValidator");
 const UserProfile = require("./router/userProfile");
 const dashboard = require("./router/dasbhoard");
 const users = require("./router/users");
+const payment = require("./router/payment")
 
 app.use(
   "/",
@@ -34,7 +35,8 @@ app.use(
   AvailableTime,
   UserProfile,
   dashboard,
-  users
+  users,
+  payment
 );
 
 
