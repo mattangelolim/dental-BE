@@ -90,8 +90,8 @@ router.get("/revenue/analytics", async (req, res) => {
                 const endDate = new Date(startDate);
                 endDate.setHours(23, 59, 59, 999);
 
-                startDate.setHours(startDate.getHours() + 8);
-                endDate.setHours(endDate.getHours() + 8);
+                // startDate.setHours(startDate.getHours() + 8);
+                // endDate.setHours(endDate.getHours() + 8);
 
                 const dailyRevenue = await Payment.sum('amount', {
                     where: {
