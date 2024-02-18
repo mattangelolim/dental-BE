@@ -101,18 +101,18 @@ router.post("/book/appointment", async (req, res) => {
 
       newAppointment.setDataValue("additional_services", validServices);
 
-      let totalCost = 0;
-
-      if (validServices && validServices.length > 0) {
-        totalCost = mainService.service_cost + validServices.reduce((total, service) => total + service.service_cost, 0);
-      } else {
-        totalCost = mainService.service_cost;
-      }
+      const totalCost = mainService.service_cost + validServices.reduce((total, service) => total + service.service_cost, 0);
 
       await Payment.create({
         appointment_uid: newAppointment.id,
         name,
         amount: totalCost
+      })
+    }else{
+      await Payment.create({
+        appointment_uid: newAppointment.id,
+        name,
+        amount: mainService.service_cost
       })
     }
 
