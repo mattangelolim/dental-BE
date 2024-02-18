@@ -48,9 +48,9 @@ router.post("/book/appointment", async (req, res) => {
       .getHours()
       .toString()
       .padStart(2, "0")}:${endTime
-      .getMinutes()
-      .toString()
-      .padStart(2, "0")}:${endTime.getSeconds().toString().padStart(2, "0")}`;
+        .getMinutes()
+        .toString()
+        .padStart(2, "0")}:${endTime.getSeconds().toString().padStart(2, "0")}`;
 
     // Check if the calculated end_time conflicts with any existing appointments
     const existingAppointments = await Appointment.findAll({
@@ -108,7 +108,7 @@ router.post("/book/appointment", async (req, res) => {
         name,
         amount: totalCost
       })
-    }else{
+    } else {
       await Payment.create({
         appointment_uid: newAppointment.id,
         name,
@@ -173,7 +173,7 @@ router.get("/fetch/appointment", async (req, res) => {
         service_cost: appointment.service_cost,
         additional_services: additionalServices,
         my_note: appointment.client_note,
-        doctor_note: appointment.doctor_note, 
+        doctor_note: appointment.doctor_note,
         tooth_name: appointment.tooth_name,
         // approval:
         //   appointment.approval === 1
@@ -185,8 +185,8 @@ router.get("/fetch/appointment", async (req, res) => {
           appointment.status === 2
             ? "accepted"
             : appointment.status === 1
-            ? "rejected"
-            : "pending",
+              ? "rejected"
+              : "pending",
         // status: appointment.approval === 0 ? 'N/A' : (appointment.approval === 1 ? 'upcoming' : 'done')
       };
     });
@@ -209,7 +209,14 @@ router.post("/approve/appointment", async (req, res) => {
     // Define the status based on the approval value
     let status;
     if (approval === "Declined") {
-      status = 1; // Declined status code
+      status = 1;
+
+      await Payment.destroy({
+        where: {
+          appointment_uid: id
+        }
+      })
+      
     } else if (approval === "Approved") {
       status = 2; // Approved status code
     } else {
