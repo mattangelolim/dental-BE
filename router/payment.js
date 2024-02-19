@@ -95,9 +95,11 @@ router.get("/revenue/analytics", async (req, res) => {
 
                 const dailyRevenue = await Payment.sum('amount', {
                     where: {
-                        createdAt: {
+                        updatedAt: {
                             [Op.between]: [startDate, endDate]
-                        }
+                        },
+                        status: 'Paid'
+
                     }
                 });
                 revenueData.push({ date: startDate, revenue: dailyRevenue || 0 });
@@ -117,9 +119,10 @@ router.get("/revenue/analytics", async (req, res) => {
             while (currentWeekStart <= endOfMonth) {
                 const weeklyRevenue = await Payment.sum('amount', {
                     where: {
-                        createdAt: {
+                        updatedAt: {
                             [Op.between]: [currentWeekStart, currentWeekEnd]
-                        }
+                        },
+                        status: 'Paid'
                     }
                 });
                 revenueData.push({ week: `${currentWeekStart.getDate()} - ${currentWeekEnd.getDate()}`, revenue: weeklyRevenue || 0 });
@@ -144,9 +147,10 @@ router.get("/revenue/analytics", async (req, res) => {
 
                 const monthlyRevenue = await Payment.sum('amount', {
                     where: {
-                        createdAt: {
+                        updatedAt: {
                             [Op.between]: [startOfMonth, endOfMonth]
-                        }
+                        },
+                        status: 'Paid'
                     }
                 });
                 revenueData.push({ month: startOfMonth.toLocaleString('en-us', { month: 'long' }), revenue: monthlyRevenue || 0 });
@@ -158,13 +162,14 @@ router.get("/revenue/analytics", async (req, res) => {
 
             const yearlyRevenue = await Payment.sum('amount', {
                 where: {
-                    createdAt: {
+                    updatedAt: {
                         [Op.between]: [startOfYear, endOfYear]
-                    }
+                    },
+                    status: 'Paid'
                 }
             });
             revenueData.push({ year: currentDate.getFullYear(), revenue: yearlyRevenue || 0 });
-        
+
         } else {
             return res.status(400).json({ message: 'Invalid filter' });
         }
